@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}{{ survey.title }}{% endblock %}
+
+{% block content %}
+<div class="survey-take">
+    <div class="survey-take-header">
+        <h1>{{ survey.title }}</h1>
+        {% if survey.description %}
+            <p class="survey-take-desc">{{ survey.description }}</p>
+        {% endif %}
+    </div>
+
+    <form method="POST" class="survey-form">
+        {% for q in survey.questions %}
+            <div class="survey-question">
+                <label class="question-label">
+                    <span class="question-num">{{ loop.index }}.</span>
+                    {{ q.text }}
+                    {% if q.is_required %}<span class="required">*</span>{% endif %}
+                </label>
+
+                {% if q.type == 'text' %}
+                    <textarea name="q_{{ q._id }}" rows="3"
+                              placeholder="Ваш ответ..."
+                              {% if q.is_required %}required{% endif %}></textarea>
+
+                {% elif q.type == 'single_choice' %}
+                    <div class="radio-group">
+                        {% for option in q.options %}
+                            <label class="radio-label">
+                                <input type="radio" name="q_{{ q._id }}"
+                                       value="{{ option }}"
+                                       {% if q.is_required %}required{% endif %}>
+                                <span>{{ option }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+
+                {% elif q.type == 'multiple_choice' %}
+                    <div class="checkbox-group">
+                        {% for option in q.options %}
+                            <label class="checkbox-label-survey">
+                                <input type="checkbox" name="q_{{ q._id }}"
+                                       value="{{ option }}">
+                                <span>{{ option }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+
+                {% elif q.type == 'rating_scale' %}
+                    <div class="rating-group">
+                        {% for i in range(1, 6) %}
+                            <label class="rating-label">
+                                <input type="radio" name="q_{{ q._id }}"
+                                       value="{{ i }}"
+                                       {% if q.is_required %}required{% endif %}>
+                                <span class="rating-num">{{ i }}</span>
+                            </label>
+                        {% endfor %}
+                        <div class="rating-hints">
+                            <span>Совсем нет</span>
+                            <span>Абсолютно да</span>
+                        </div>
+                    </div>
+
+                {% elif q.type == 'yes_no' %}
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="q_{{ q._id }}" value="yes"
+                                   {% if q.is_required %}required{% endif %}>
+                            <span>Да</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="q_{{ q._id }}" value="no">
+                            <span>Нет</span>
+                        </label>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary btn-lg btn-full">
+            Отправить ответы
+        </button>
+    </form>
+</div>
+{% endblock %}

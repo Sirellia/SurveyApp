@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}{{ survey.title }} — Редактирование{% endblock %}
+{% block content %}
+<div class="edit-page">
+    <div class="edit-header">
+        <div class="edit-header-info">
+            <h1>{{ survey.title }}</h1>
+            <span class="status-badge status-{{ survey.status }}">
+                {% if survey.status == 'draft' %}Черновик{% elif survey.status == 'active' %}Активный{% else %}Закрыт{% endif %}
+            </span>
+        </div>
+        <div class="edit-header-actions">
+            {% if survey.status == 'draft' %}
+                <form method="POST" style="display:inline">
+                    <input type="hidden" name="action" value="update_status">
+                    <input type="hidden" name="status" value="active">
+                    <button type="submit" class="btn btn-primary">🚀 Опубликовать</button>
+                </form>
+            {% elif survey.status == 'active' %}
+                <button class="btn btn-outline" onclick="copyLink('{{ request.host_url }}s/{{ survey.share_code }}')">📋 Копировать ссылку</button>
+                <form method="POST" style="display:inline">
+                    <input type="hidden" name="action" value="update_status">
+                    <input type="hidden" name="status" value="closed">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Закрыть опрос?')">🔒 Закрыть</button>
+                </form>
+            {% else %}
+                <form method="POST" style="display:inline">
+                    <input type="hidden" name="action" value="update_status">
+                    <input type="hidden" name="status" value="active">
+                    <button type="submit" class="btn btn-primary">🔓 Открыть снова</button>
+                </form>
+            {% endif %}
+            {% if survey.responses_count > 0 %}
+                <a href="{{ url_for('analytics.results', survey_id=survey._id) }}" class="btn btn-outline">📊 Результаты ({{ survey.responses_count }})</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if survey.status == 'active' %}
+    <div class="share-box">
+        <label>Ссылка для респондентов:</label>
+        <div class="share-link">
+            <input type="text" readonly value="{{ request.host_url }}s/{{ survey.share_code }}" id="shareLink">
+            <button class="btn btn-sm btn-primary" onclick="copyLink('{{ request.host_url }}s/{{ survey.share_code }}')">Копировать</button>
+        </div>
+    </div>
+    {% endif %}
+
+    <details class="edit-section">
+        <summary>✏️ Редактировать название и описание</summary>
+        <form method="POST" class="edit-info-form">
+            <input type="hidden" name="action" value="update_info">
+            <div class="form-group"><label>Название</label><input type="text" name="title" value="{{ survey.title }}" required></div>
+            <div class="form-group"><label>Описание</label><textarea name="description" rows="2">{{ survey.description }}</textarea></div>
+            <button type="submit" class="btn btn-sm btn-primary">Сохранить</button>
+        </form>
+    </details>
+
+    <h2>Вопросы ({{ survey.questions|length }})</h2>
+
+    {% if survey.questions|length == 0 %}
+        <div class="empty-state small"><p>Добавьте первый вопрос ниже.</p></div>
+    {% else %}
+        <div class="questions-list">
+            {% for q in survey.questions %}
+                <div class="question-item">
+                    <div class="question-item-header">
+                        <span class="question-number">{{ loop.index }}</span>
+                        <div class="question-item-info">
+                            <strong>{{ q.text }}</strong>
+                            <span class="question-type-badge">
+                                {% if q.type == 'text' %}Текст{% elif q.type == 'single_choice' %}Один вариант{% elif q.type == 'multiple_choice' %}Несколько вариантов{% elif q.type == 'rating_scale' %}Шкала{% elif q.type == 'yes_no' %}Да/Нет{% endif %}
+                            </span>
+                            {% if q.is_required %}<span class="required-badge">обязательный</span>{% endif %}
+                            {% if q.has_correct_answer %}<span class="required-badge" style="background:#D1FAE5;color:#065F46">✓ есть правильный ответ</span>{% endif %}
+                        </div>
+                        <form method="POST" style="display:inline">
+                            <input type="hidden" name="action" value="delete_question">
+                            <input type="hidden" name="question_id" value="{{ q._id }}">
+                            <button type="submit" class="btn-icon btn-delete" onclick="return confirm('Удалить?')">🗑</button>
+                        </form>
+                    </div>
+                    {% if q.options %}
+                        <div class="question-options">
+                            {% for opt in q.options %}
+                                <span class="option-tag" {% if q.has_correct_answer and q.correct_answer %}{% if q.type == 'multiple_choice' and opt in q.correct_answer %}style="background:#D1FAE5;color:#065F46;font-weight:600"{% elif q.type != 'multiple_choice' and opt == q.correct_answer %}style="background:#D1FAE5;color:#065F46;font-weight:600"{% endif %}{% endif %}>{{ opt }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if q.type == 'yes_no' and q.has_correct_answer and q.correct_answer %}
+                        <div class="question-options" style="margin-top:8px;padding-left:40px">
+                            <span class="option-tag" style="background:#D1FAE5;color:#065F46">Правильный: {% if q.correct_answer == 'yes' %}Да{% else %}Нет{% endif %}</span>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="add-question-form">
+        <h3>Добавить вопрос</h3>
+        <form method="POST">
+            <input type="hidden" name="action" value="add_question">
+            <div class="form-group"><label>Текст вопроса *</label><input type="text" name="question_text" placeholder="Введите вопрос" required></div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Тип вопроса</label>
+                    <select name="question_type" id="questionType" onchange="toggleOptions()">
+                        <option value="text">Текстовый ответ</option>
+                        <option value="single_choice">Один вариант</option>
+                        <option value="multiple_choice">Несколько вариантов</option>
+                        <option value="rating_scale">Шкала (1-5)</option>
+                        <option value="yes_no">Да / Нет</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label"><input type="checkbox" name="is_required" checked> Обязательный</label>
+                </div>
+            </div>
+
+            <div id="correctAnswerToggle" style="display:none;margin-bottom:16px">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="has_correct_answer" id="hasCorrectAnswer" onchange="toggleCorrectAnswer()">
+                    ✅ Указать правильный ответ (режим теста)
+                </label>
+            </div>
+
+            <div id="optionsContainer" style="display:none">
+                <label>Варианты ответа *</label>
+                <div id="optionsList">
+                    <div class="option-input">
+                        <input type="text" name="options[]" placeholder="Вариант 1">
+                        <button type="button" class="btn-icon btn-delete" onclick="removeOption(this)">×</button>
+                    </div>
+                    <div class="option-input">
+                        <input type="text" name="options[]" placeholder="Вариант 2">
+                        <button type="button" class="btn-icon btn-delete" onclick="removeOption(this)">×</button>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline" onclick="addOption()">+ Добавить вариант</button>
+            </div>
+
+            <div id="correctSingleContainer" style="display:none;margin-bottom:16px">
+                <label>Правильный вариант *</label>
+                <select name="correct_answer" id="correctSingleSelect">
+                    <option value="">-- Выберите правильный ответ --</option>
+                </select>
+            </div>
+
+            <!-- Выбор правильных ответов для multiple choice -->
+            <div id="correctMultipleContainer" style="display:none;margin-bottom:16px">
+                <label>Правильные варианты * (отметьте все правильные)</label>
+                <div id="correctMultipleList"></div>
+            </div>
+
+            <!-- Выбор правильного ответа для yes/no -->
+            <div id="correctYesNoContainer" style="display:none;margin-bottom:16px">
+                <label>Правильный ответ *</label>
+                <select name="correct_answer">
+                    <option value="">-- Выберите --</option>
+                    <option value="yes">Да</option>
+                    <option value="no">Нет</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Добавить вопрос</button>
+        </form>
+    </div>
+
+    <div class="danger-zone">
+        <h3>Опасная зона</h3>
+        <form method="POST" action="{{ url_for('surveys.delete_survey', survey_id=survey._id) }}">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Удалить опрос и все ответы?')">🗑 Удалить опрос</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

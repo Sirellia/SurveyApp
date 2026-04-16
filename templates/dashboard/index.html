@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Мои опросы — SurveyApp{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Мои опросы</h1>
+    <a href="{{ url_for('surveys.create_survey') }}" class="btn btn-primary">+ Создать опрос</a>
+</div>
+
+{% if surveys|length == 0 %}
+    <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <h3>У вас пока нет опросов</h3>
+        <p>Создайте свой первый опрос прямо сейчас!</p>
+        <a href="{{ url_for('surveys.create_survey') }}" class="btn btn-primary">Создать опрос</a>
+    </div>
+{% else %}
+    <div class="surveys-grid">
+        {% for survey in surveys %}
+            <div class="survey-card">
+                <div class="survey-card-header">
+                    <h3>{{ survey.title }}</h3>
+                    <span class="status-badge status-{{ survey.status }}">
+                        {% if survey.status == 'draft' %}Черновик
+                        {% elif survey.status == 'active' %}Активный
+                        {% else %}Закрыт{% endif %}
+                    </span>
+                </div>
+
+                {% if survey.description %}
+                    <p class="survey-desc">{{ survey.description[:100] }}{% if survey.description|length > 100 %}...{% endif %}</p>
+                {% endif %}
+
+                <div class="survey-meta">
+                    <span>📝 {{ survey.questions|length }} вопросов</span>
+                    <span>📬 {{ survey.responses_count }} ответов</span>
+                    <span>📅 {{ survey.created_at.strftime('%d.%m.%Y') }}</span>
+                </div>
+
+                <div class="survey-actions">
+                    <a href="{{ url_for('surveys.edit_survey', survey_id=survey._id) }}"
+                       class="btn btn-sm btn-outline">Редактировать</a>
+
+                    {% if survey.responses_count > 0 %}
+                        <a href="{{ url_for('analytics.results', survey_id=survey._id) }}"
+                           class="btn btn-sm btn-primary">Результаты</a>
+                    {% endif %}
+
+                    {% if survey.status == 'active' %}
+                        <button class="btn btn-sm btn-outline"
+                                onclick="copyLink('{{ request.host_url }}s/{{ survey.share_code }}')">
+                            📋 Копировать ссылку
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

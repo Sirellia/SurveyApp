@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}SurveyApp — Создавайте опросы легко{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Создавайте опросы <span class="accent">быстро и бесплатно</span></h1>
+    <p class="hero-text">
+        Конструктор онлайн-опросов с мгновенной аналитикой.
+        Создайте опрос, поделитесь ссылкой, получите результаты.
+    </p>
+    <div class="hero-actions">
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Начать бесплатно</a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-lg">Войти</a>
+    </div>
+</div>
+
+<div class="features">
+    <div class="feature-card">
+        <div class="feature-icon">✏️</div>
+        <h3>Простой конструктор</h3>
+        <p>5 типов вопросов: текст, выбор одного или нескольких вариантов, шкала, да/нет</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">🔗</div>
+        <h3>Уникальная ссылка</h3>
+        <p>Каждый опрос получает уникальную ссылку для распространения среди респондентов</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Мгновенная аналитика</h3>
+        <p>Результаты в виде интерактивных диаграмм и возможность экспорта в CSV</p>
+    </div>
+</div>
+{% endblock %}

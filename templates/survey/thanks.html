@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Спасибо!{% endblock %}
+{% block content %}
+<div class="thanks-page">
+    <div class="thanks-icon">✅</div>
+    <h1>Спасибо за участие!</h1>
+    <p>Ваши ответы на опрос «{{ survey.title }}» сохранены.</p>
+
+    {% if total_questions > 0 %}
+        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:24px;max-width:500px;margin:20px auto;text-align:center">
+            <h2 style="margin-bottom:8px">Ваш результат</h2>
+            <div style="font-size:3rem;font-weight:700;color:{% if score/total_questions >= 0.7 %}#10B981{% elif score/total_questions >= 0.4 %}#F59E0B{% else %}#EF4444{% endif %}">
+                {{ score }} / {{ total_questions }}
+            </div>
+            <p style="color:#6B7280;margin-top:8px">
+                {% if total_questions > 0 %}
+                    {{ (score / total_questions * 100) | round(0) | int }}% правильных ответов
+                {% endif %}
+            </p>
+        </div>
+
+        <div style="max-width:600px;margin:20px auto;text-align:left">
+            {% for ans in answers %}
+                {% if ans.is_correct is not none %}
+                    <div style="background:#fff;border:1px solid {% if ans.is_correct %}#D1FAE5{% else %}#FEE2E2{% endif %};border-radius:8px;padding:14px 18px;margin-bottom:8px">
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span>{% if ans.is_correct %}✅{% else %}❌{% endif %}</span>
+                            <strong>{{ ans.question_text }}</strong>
+                        </div>
+                        <div style="margin-top:6px;color:#6B7280;font-size:.9rem">
+                            Ваш ответ: <strong>{% if ans.value is iterable and ans.value is not string %}{{ ans.value | join(', ') }}{% else %}{% if ans.value == 'yes' %}Да{% elif ans.value == 'no' %}Нет{% else %}{{ ans.value }}{% endif %}{% endif %}</strong>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <a href="/" class="btn btn-outline">На главную</a>
+</div>
+{% endblock %}

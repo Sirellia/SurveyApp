@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Новый опрос — SurveyApp{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <h1>Создать новый опрос</h1>
+
+    <form method="POST" action="{{ url_for('surveys.create_survey') }}">
+        <div class="form-group">
+            <label for="title">Название опроса *</label>
+            <input type="text" id="title" name="title"
+                   placeholder="Например: Оценка качества обслуживания"
+                   required maxlength="200">
+        </div>
+        <div class="form-group">
+            <label for="description">Описание (необязательно)</label>
+            <textarea id="description" name="description" rows="3"
+                      placeholder="Краткое описание цели опроса"></textarea>
+        </div>
+        <div class="form-actions">
+            <a href="{{ url_for('surveys.dashboard') }}" class="btn btn-outline">Отмена</a>
+            <button type="submit" class="btn btn-primary">Создать и добавить вопросы</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

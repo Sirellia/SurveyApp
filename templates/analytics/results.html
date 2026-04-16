@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Результаты: {{ survey.title }}{% endblock %}
+{% block content %}
+<div class="results-page">
+    <div class="results-header">
+        <div>
+            <h1>📊 {{ survey.title }}</h1>
+            <p class="results-meta">Всего ответов: <strong>{{ total_responses }}</strong></p>
+        </div>
+        <div class="results-actions">
+            <a href="{{ url_for('analytics.export_csv', survey_id=survey._id) }}" class="btn btn-outline">📥 CSV</a>
+            <a href="{{ url_for('surveys.edit_survey', survey_id=survey._id) }}" class="btn btn-outline">← Назад</a>
+        </div>
+    </div>
+    {% if total_responses == 0 %}
+        <div class="empty-state"><h3>Ответов пока нет</h3></div>
+    {% else %}
+        {% for item in analytics %}
+            <div class="result-card">
+                <h3>{{ loop.index }}. {{ item.question_text }}</h3>
+                {% if item.type in ('single_choice', 'multiple_choice', 'yes_no') %}
+                    <div class="chart-container"><canvas id="chart_{{ loop.index }}"></canvas></div>
+                    <div class="result-table">
+                        <table>
+                            <tr><th>Вариант</th><th>Кол-во</th><th>%</th></tr>
+                            {% for i in range(item.labels|length) %}
+                            <tr><td>{{ item.labels[i] }}</td><td>{{ item.counts[i] }}</td><td>{{ item.percentages[i] }}%</td></tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                {% elif item.type == 'rating_scale' %}
+                    <div class="rating-result">
+                        <span class="rating-big">{{ item.average }}</span>
+                        <span class="rating-label-text">средняя оценка</span>
+                    </div>
+                    <div class="chart-container"><canvas id="chart_{{ loop.index }}"></canvas></div>
+                {% elif item.type == 'text' %}
+                    <div class="text-answers">
+                        {% for answer in item.text_answers %}
+                            <div class="text-answer-item"><span class="text-answer-num">{{ loop.index }}</span>{{ answer }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const analyticsData = {{ analytics | tojson }};
+analyticsData.forEach((item, index) => {
+    const canvas = document.getElementById('chart_' + (index + 1));
+    if (!canvas) return;
+    if (item.type === 'single_choice' || item.type === 'yes_no') {
+        new Chart(canvas, { type:'pie', data:{ labels:item.labels, datasets:[{data:item.counts, backgroundColor:['#4F46E5','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#06B6D4','#84CC16']}]}, options:{responsive:true, plugins:{legend:{position:'bottom'}}}});
+    } else if (item.type === 'multiple_choice') {
+        new Chart(canvas, { type:'bar', data:{ labels:item.labels, datasets:[{label:'Ответы',data:item.counts,backgroundColor:'#4F46E5'}]}, options:{responsive:true, scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}, plugins:{legend:{display:false}}}});
+    } else if (item.type === 'rating_scale') {
+        new Chart(canvas, { type:'bar', data:{ labels:item.labels, datasets:[{label:'Кол-во',data:item.counts,backgroundColor:'#10B981'}]}, options:{responsive:true, scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}, plugins:{legend:{display:false}}}});
+    }
+});
+</script>
+{% endblock %}
