@@ -1,34 +1,69 @@
-{% extends "base.html" %}
-{% block title %}SurveyApp — Создавайте опросы легко{% endblock %}
+{% extends 'base.html' %}
+{% block title %}SurveyApp — Создавай опросы. Получай аналитику.{% endblock %}
 
 {% block content %}
-<div class="hero">
-    <h1>Создавайте опросы <span class="accent">быстро и бесплатно</span></h1>
-    <p class="hero-text">
-        Конструктор онлайн-опросов с мгновенной аналитикой.
-        Создайте опрос, поделитесь ссылкой, получите результаты.
-    </p>
-    <div class="hero-actions">
-        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Начать бесплатно</a>
-        <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-lg">Войти</a>
-    </div>
+<section class="hero">
+  <div class="hero-tag">✨ Бесплатно и без ограничений</div>
+  <h1>Создавай опросы.<br>Получай аналитику.</h1>
+  <p>
+    Конструктор опросов и тестов с мгновенной аналитикой.
+    Делись ссылкой — результаты появляются в реальном времени.
+  </p>
+  <div class="hero-actions">
+    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+      Начать бесплатно →
+    </a>
+    <a href="{{ url_for('public_bp.catalog') }}" class="btn btn-secondary btn-lg">
+      🌐 Каталог опросов
+    </a>
+  </div>
+</section>
+
+<div class="stats-grid" style="max-width:600px; margin:0 auto 64px;">
+  <div class="stat-card">
+    <span class="stat-value">5</span>
+    <span class="stat-label">Типов вопросов</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-value">0₽</span>
+    <span class="stat-label">Стоимость</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-value">∞</span>
+    <span class="stat-label">Опросов</span>
+  </div>
 </div>
 
-<div class="features">
-    <div class="feature-card">
-        <div class="feature-icon">✏️</div>
-        <h3>Простой конструктор</h3>
-        <p>5 типов вопросов: текст, выбор одного или нескольких вариантов, шкала, да/нет</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">🔗</div>
-        <h3>Уникальная ссылка</h3>
-        <p>Каждый опрос получает уникальную ссылку для распространения среди респондентов</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <h3>Мгновенная аналитика</h3>
-        <p>Результаты в виде интерактивных диаграмм и возможность экспорта в CSV</p>
-    </div>
+<div class="features-grid">
+  <div class="feature-card">
+    <div class="feature-icon">📝</div>
+    <h3>Конструктор опросов</h3>
+    <p>Текст, выбор, множественный выбор, шкала оценки, да/нет — всё в одном месте.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">🎓</div>
+    <h3>Режим теста</h3>
+    <p>Укажи правильные ответы — участник сразу увидит результат с разбором каждого вопроса.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">📊</div>
+    <h3>Аналитика</h3>
+    <p>Интерактивные диаграммы Chart.js, процентное распределение и экспорт в CSV.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">🔗</div>
+    <h3>Уникальные ссылки</h3>
+    <p>Каждый опрос получает криптографически стойкий код. Прохождение без регистрации.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">🔒</div>
+    <h3>Безопасность</h3>
+    <p>JWT-аутентификация, bcrypt-хеши паролей. Каждый видит только свои опросы.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">🌐</div>
+    <h3>Публичный каталог</h3>
+    <p>Все открытые опросы в одном месте — участвуй в опросах других пользователей.</p>
+  </div>
 </div>
 {% endblock %}

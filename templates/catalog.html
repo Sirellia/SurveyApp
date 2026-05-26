@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Каталог опросов — SurveyApp{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+  <div>
+    <h1>🌐 Каталог опросов</h1>
+    <p>Все открытые опросы — принять участие можно без регистрации</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <input type="text" id="catalogSearch" class="form-control"
+           placeholder="Поиск по названию…" style="width:220px;"
+           oninput="filterCatalog()">
+    <span class="badge badge-active" id="surveyCount">
+      <span class="badge-dot"></span>
+      <span id="countNum">{{ surveys|length }}</span> активных
+    </span>
+  </div>
+</div>
+
+{% if surveys %}
+  <div class="catalog-grid" id="catalogGrid">
+    {% for survey in surveys %}
+    <div class="catalog-card" data-title="{{ survey.title | lower }}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+        <div class="catalog-card-title">{{ survey.title }}</div>
+        <span class="badge badge-active" style="flex-shrink:0;">
+          <span class="badge-dot"></span> Открыт
+        </span>
+      </div>
+
+      {% if survey.description %}
+        <p class="catalog-card-desc">{{ survey.description }}</p>
+      {% else %}
+        <p class="catalog-card-desc" style="font-style:italic;opacity:0.4;">Описание не указано</p>
+      {% endif %}
+
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        {% set types = survey.questions | map(attribute='type') | list %}
+        {% if 'single_choice' in types or 'multiple_choice' in types %}
+          <span class="badge badge-draft" style="font-size:.72rem;">🔘 Выбор</span>
+        {% endif %}
+        {% if 'text' in types %}
+          <span class="badge badge-draft" style="font-size:.72rem;">✏️ Текст</span>
+        {% endif %}
+        {% if 'rating_scale' in types %}
+          <span class="badge badge-draft" style="font-size:.72rem;">⭐ Оценка</span>
+        {% endif %}
+        {% if 'yes_no' in types %}
+          <span class="badge badge-draft" style="font-size:.72rem;">✓ Да/Нет</span>
+        {% endif %}
+        {% for q in survey.questions %}
+          {% if q.has_correct_answer %}
+            <span class="badge" style="background:rgba(251,191,36,.1);color:#fbbf24;font-size:.72rem;">🎓 Тест</span>
+            {% break %}
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <div class="catalog-card-meta">
+        <span>📝 {{ survey.questions | length }} вопр.</span>
+        <span>🕐 {{ survey.created_at.strftime('%d.%m.%Y') if survey.created_at else '—' }}</span>
+        <a href="{{ url_for('public_bp.take_survey', share_code=survey.share_code) }}"
+           class="btn btn-primary btn-sm" style="margin-left:auto;">
+          Пройти →
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div id="noResults" class="empty-state hidden">
+    <div class="icon">🔍</div>
+    <h3>Ничего не найдено</h3>
+    <p>Попробуйте другой запрос</p>
+  </div>
+
+{% else %}
+  <div class="empty-state">
+    <div class="icon">🌐</div>
+    <h3>Каталог пока пуст</h3>
+    <p>Опубликованные опросы появятся здесь автоматически</p>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-primary">
+      Создать первый опрос
+    </a>
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterCatalog() {
+  const q = document.getElementById('catalogSearch').value.toLowerCase().trim();
+  const cards = document.querySelectorAll('#catalogGrid .catalog-card');
+  let visible = 0;
+  cards.forEach(card => {
+    const match = !q || card.dataset.title.includes(q);
+    card.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  document.getElementById('noResults').classList.toggle('hidden', visible > 0);
+  document.getElementById('countNum').textContent = visible;
+}
+</script>
+{% endblock %}
